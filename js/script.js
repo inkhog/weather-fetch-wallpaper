@@ -2,6 +2,7 @@
 let noClock = false;
 let _12hour =true;
 var mmddyy=true;
+let lat,lon;
 let cityName = "city, country"; // your city name
 let units = "metric"; //metric or imperial
 let weatherApi = "openweathermap.org key"; //your open weather api key here. uses current weather and 5 day 3 hour forecast
@@ -51,9 +52,9 @@ function getWeather(){
         document.getElementById('error').style.display="none";
   }
 
-var weatherEnd=cityName+"&units="+units+"&APPID="+weatherApi;
-var weatherURL="https://api.openweathermap.org/data/2.5/weather?q="+weatherEnd;
-var forecastURL="https://api.openweathermap.org/data/2.5/forecast?q="+weatherEnd;
+var weatherEnd='lat='+lat+'&lon='+lon+"&units="+units+"&APPID="+weatherApi;
+var weatherURL="https://api.openweathermap.org/data/2.5/weather?"+weatherEnd;
+var forecastURL="https://api.openweathermap.org/data/2.5/forecast?"+weatherEnd;
 
 //fetch current weather data json
     fetch(weatherURL)
@@ -204,6 +205,55 @@ function getFormatedTime(){
 
 	return new Intl.DateTimeFormat('en-US',{'hour':'2-digit','minute':'2-digit','second':'2-digit','hour12':false}).format(d);
 }
+
+// 创建一个函数，主要功能是在调用html5的geolocation()前，先判断当前浏览器是否支持html5，（PC绝大部分浏览器不支持或者拒绝html5定位）
+function getLocation() {
+var options = {
+	enableHighAccuracy: true,
+	maximumAge: 1000
+};
+if (navigator.geolocation) {
+	// 走到这里说明，浏览器支持geolocation，参数里有两个回调函数，一个是定位成功后的处理操作，一个是定位失败后的处理操作，另外一个参数没有研究过
+	navigator.geolocation.getCurrentPosition(onSuccess, onError, options);
+} else {
+	// 否则浏览器不支持geolocation
+	alert('您的浏览器不支持地理位置定位！');
+}
+}
+
+// 成功时的回调函数
+// 第一步获取定位成功返回的经纬度数据，然后结合百度那边提供的接口进行具体位置的转换，最后还有一个数据提交的方法，要跟自己的业务操作了
+function onSuccess(position) {
+// 返回用户位置
+	// 经度
+	lon = position.coords.longitude;
+	// 纬度
+	lat = position.coords.latitude;
+}
+
+// 失败时的回调函数
+// 这里是错误提示信息
+function onError(error) {
+switch (error.code) {
+	case 1:
+		alert("位置服务被拒绝！");
+		break;
+		case 2:
+			alert("暂时获取不到位置信息！");
+			break;
+			case 3:
+				alert("获取信息超时！");
+				break;
+				case 4:
+					alert("未知错误！");
+					break;
+}
+}
+// 页面载入时请求获取当前地理位置
+window.onload = function () {
+// html5获取地理位置
+	getLocation();
+};
 
 //updates the weather each hour
 setInterval(getWeather, 1*60*60*1000);
